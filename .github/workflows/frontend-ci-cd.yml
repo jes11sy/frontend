@@ -61,14 +61,26 @@ jobs:
           name: frontend-dist
           path: ./dist
 
+      - name: 🔐 Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.DEPLOY_HOST }} >> ~/.ssh/known_hosts
+
       - name: 🚀 Deploy to staging
         run: |
-          echo "🚀 Deploying to https://staging.lead-schem.ru..."
+          echo "🚀 Deploying to staging subdirectory..."
           echo "📁 Files to deploy:"
           ls -la dist/
-          # TODO: Заменить на реальные команды деплоя:
-          # rsync -avz --delete ./dist/ user@staging.lead-schem.ru:/var/www/staging/
-          # ssh user@staging.lead-schem.ru "sudo systemctl reload nginx"
+          
+          # Deploy files to staging subdirectory
+          rsync -avz --delete \
+            -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no" \
+            ./dist/ \
+            ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/var/www/staging/
+          
+          echo "✅ Staging deploy completed!"
 
   # 🌟 Deploy production  
   deploy-production:
@@ -85,18 +97,49 @@ jobs:
           name: frontend-dist
           path: ./dist
 
+      - name: 🔐 Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.DEPLOY_HOST }} >> ~/.ssh/known_hosts
+
       - name: 🌟 Deploy to production
         run: |
-          echo "🌟 Deploying to https://lead-schem.ru..."
+          echo "🌟 Deploying to https://${{ secrets.DEPLOY_HOST }}..."
           echo "📁 Files to deploy:"
           ls -la dist/
-          # TODO: Заменить на реальные команды деплоя:
-          # rsync -avz --delete ./dist/ user@lead-schem.ru:/var/www/lead-schem.ru/
-          # ssh user@lead-schem.ru "sudo systemctl reload nginx"
+          
+          # Deploy files via rsync
+          rsync -avz --delete \
+            -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no" \
+            ./dist/ \
+            ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.DEPLOY_PATH }}/
+          
+          # Reload nginx
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no \
+            ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
+            "sudo systemctl reload nginx"
+          
+          echo "✅ Deploy completed successfully!"
+
+      - name: 🔍 Verify deployment
+        run: |
+          echo "🔍 Verifying deployment..."
+          sleep 5  # Wait for server to process files
+          
+          # Check if site is accessible
+          if curl -f -s -I https://${{ secrets.DEPLOY_HOST }} > /dev/null; then
+            echo "✅ Site is accessible at https://${{ secrets.DEPLOY_HOST }}"
+          else
+            echo "❌ Site verification failed"
+            exit 1
+          fi
           
       - name: 🎉 Success notification
         run: |
           echo "✅ Frontend deployed to production!"
-          echo "🌐 HTTPS URL: https://lead-schem.ru"
+          echo "🌐 HTTPS URL: https://${{ secrets.DEPLOY_HOST }}"
           echo "🔐 SSL enabled with security headers"
-          echo "🚀 API: https://api.lead-schem.ru" 
+          echo "🚀 API: https://api.${{ secrets.DEPLOY_HOST }}"
+          echo "📁 Deployed to: ${{ secrets.DEPLOY_PATH }}" 
