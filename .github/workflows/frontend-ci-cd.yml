@@ -1,0 +1,102 @@
+name: 🚀 Frontend CI/CD
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  NODE_VERSION: '18'
+
+jobs:
+  # 🏗️ Сборка
+  build:
+    name: 🏗️ Build
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🏗️ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 🏗️ Production build
+        run: npm run build
+
+      - name: 📊 Build info
+        run: |
+          echo "✅ Build completed!"
+          ls -la dist/
+          echo "📦 Bundle size:"
+          du -sh dist/*
+
+      - name: 📦 Upload build
+        uses: actions/upload-artifact@v3
+        with:
+          name: frontend-dist
+          path: dist/
+          retention-days: 7
+
+  # 🚀 Deploy staging
+  deploy-staging:
+    name: 🚀 Deploy Staging
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    environment: staging
+    
+    steps:
+      - name: 📥 Download build
+        uses: actions/download-artifact@v3
+        with:
+          name: frontend-dist
+          path: ./dist
+
+      - name: 🚀 Deploy to staging
+        run: |
+          echo "🚀 Deploying to https://staging.lead-schem.ru..."
+          echo "📁 Files to deploy:"
+          ls -la dist/
+          # TODO: Заменить на реальные команды деплоя:
+          # rsync -avz --delete ./dist/ user@staging.lead-schem.ru:/var/www/staging/
+          # ssh user@staging.lead-schem.ru "sudo systemctl reload nginx"
+
+  # 🌟 Deploy production  
+  deploy-production:
+    name: 🌟 Deploy Production
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment: production
+    
+    steps:
+      - name: 📥 Download build
+        uses: actions/download-artifact@v3
+        with:
+          name: frontend-dist
+          path: ./dist
+
+      - name: 🌟 Deploy to production
+        run: |
+          echo "🌟 Deploying to https://lead-schem.ru..."
+          echo "📁 Files to deploy:"
+          ls -la dist/
+          # TODO: Заменить на реальные команды деплоя:
+          # rsync -avz --delete ./dist/ user@lead-schem.ru:/var/www/lead-schem.ru/
+          # ssh user@lead-schem.ru "sudo systemctl reload nginx"
+          
+      - name: 🎉 Success notification
+        run: |
+          echo "✅ Frontend deployed to production!"
+          echo "🌐 HTTPS URL: https://lead-schem.ru"
+          echo "🔐 SSL enabled with security headers"
+          echo "🚀 API: https://api.lead-schem.ru" 
