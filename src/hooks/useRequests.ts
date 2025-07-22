@@ -71,53 +71,38 @@ export const useUpdateRequest = () => {
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: Partial<CreateRequest> }) =>
       requestsApi.updateRequest(id, data),
-    onSuccess: async (updatedRequest, variables) => {
+    onSuccess: (updatedRequest, variables) => {
       const { id } = variables;
       
-      // ✅ ИСПРАВЛЕНИЕ: после PUT делаем GET для получения полных данных
-      try {
-        const freshData = await requestsApi.getRequest(id);
-        
-        // Обновляем детальную страницу со свежими данными
-        queryClient.setQueryData(requestsKeys.detail(id), freshData);
-        
-        // Инвалидируем все списки заявок для обновления
-        queryClient.invalidateQueries({ 
-          predicate: (query) => {
-            return query.queryKey.length >= 2 && 
-                   query.queryKey[0] === 'requests' && 
-                   query.queryKey[1] === 'list';
+      // ✅ Обновляем детальную страницу (merge с существующими данными)
+      queryClient.setQueryData(
+        requestsKeys.detail(id),
+        (oldData: Request | undefined) => {
+          if (!oldData) {
+            return updatedRequest;
           }
-        });
-        
-        showSuccess('Данные успешно обновлены');
-      } catch (error) {
-        console.error('Error refetching request:', error);
-        // Fallback - используем данные из PUT ответа  
-        queryClient.setQueryData(
-          requestsKeys.detail(id),
-          (oldData: Request | undefined) => {
-            if (!oldData) return updatedRequest;
-            return {
-              ...oldData,
-              ...updatedRequest,
-              net_amount: updatedRequest.net_amount || oldData.net_amount,
-              expenses: updatedRequest.expenses || oldData.expenses,
-              master_handover: updatedRequest.master_handover || oldData.master_handover,
-            };
-          }
-        );
-        
-        queryClient.invalidateQueries({ 
-          predicate: (query) => {
-            return query.queryKey.length >= 2 && 
-                   query.queryKey[0] === 'requests' && 
-                   query.queryKey[1] === 'list';
-          }
-        });
-        
-        showSuccess('Данные обновлены');
-      }
+          return {
+            ...oldData,
+            ...updatedRequest,
+            // Сохраняем важные поля, если они не пришли с сервера
+            net_amount: updatedRequest.net_amount ?? oldData.net_amount,
+            expenses: updatedRequest.expenses ?? oldData.expenses,
+            master_handover: updatedRequest.master_handover ?? oldData.master_handover,
+            result: updatedRequest.result ?? oldData.result,
+          };
+        }
+      );
+      
+      // ✅ Инвалидируем все списки заявок для обновления  
+      queryClient.invalidateQueries({ 
+        predicate: (query) => {
+          return query.queryKey.length >= 2 && 
+                 query.queryKey[0] === 'requests' && 
+                 query.queryKey[1] === 'list';
+        }
+      });
+      
+      showSuccess('Заявка успешно обновлена');
     },
     onError: (error: any) => {
       showError(error?.response?.data?.message || 'Ошибка при обновлении заявки');
