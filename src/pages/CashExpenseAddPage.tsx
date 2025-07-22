@@ -23,7 +23,7 @@ import dayjs from 'dayjs';
 import { transactionsApi, type TransactionCreate } from '../api/transactions';
 import { useAuth } from '../contexts/AuthContext';
 import { useAppData } from '../contexts/AppDataContext';
-import { useApiData } from '../hooks/useApiData';
+import { useTransactionTypes } from '../hooks/useTransactions';
 import { useNotification } from '../contexts/NotificationContext';
 
 const schema = z.object({
@@ -57,7 +57,7 @@ const CashExpenseAddPage: React.FC = () => {
     return types.filter(t => t.name.toLowerCase().includes('расход'));
       }, [setValue]);
 
-  const { data: transactionTypes = [], loading: typesLoading } = useApiData(loadTransactionTypesData);
+  const { data: transactionTypes = [], isLoading: typesLoading } = useTransactionTypes();
 
   const onSubmit = useCallback(async (data: FormData) => {
     try {

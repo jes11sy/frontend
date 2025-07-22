@@ -22,7 +22,7 @@ import dayjs from 'dayjs';
 import { transactionsApi, type TransactionCreate } from '../api/transactions';
 import { useAuth } from '../contexts/AuthContext';
 import { useAppData } from '../contexts/AppDataContext';
-import { useApiData } from '../hooks/useApiData';
+import { useTransactionTypes } from '../hooks/useTransactions';
 import { useNotification } from '../contexts/NotificationContext';
 
 const schema = z.object({
@@ -55,7 +55,7 @@ const CashIncomeAddPage: React.FC = () => {
     return types.filter(t => t.name.toLowerCase().includes('приход'));
   }, []);
 
-  const { data: transactionTypes = [], loading: typesLoading } = useApiData(loadTransactionTypesData);
+  const { data: transactionTypes = [], isLoading: typesLoading } = useTransactionTypes();
 
   const currentCity = useMemo(() => null, []);
 
