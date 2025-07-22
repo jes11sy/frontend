@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { requestsApi, type CreateRequest } from '../api/requests';
+import { requestsApi, type CreateRequest, type Request } from '../api/requests';
 import { usersApi } from '../api/users';
 import { advertisingCampaignsApi } from '../api/advertisingCampaigns';
 import { useNotification } from '../contexts/NotificationContext';
@@ -71,11 +71,28 @@ export const useUpdateRequest = () => {
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: Partial<CreateRequest> }) =>
       requestsApi.updateRequest(id, data),
-    onSuccess: (updatedRequest) => {
-      // Обновляем кеш конкретной заявки
+    onSuccess: (updatedRequest, variables) => {
+      const { id } = variables;
+      
+      // ✅ ИСПРАВЛЕНИЕ: мерджим новые данные с существующими
       queryClient.setQueryData(
-        requestsKeys.detail(updatedRequest.id),
-        updatedRequest
+        requestsKeys.detail(id),
+        (oldData: Request | undefined) => {
+          if (!oldData) {
+            // Если старых данных нет, используем новые
+            return updatedRequest;
+          }
+          // Мерджим старые данные с новыми, сохраняя все поля
+          return {
+            ...oldData,
+            ...updatedRequest,
+            // Принудительно сохраняем важные поля, если они не пришли с сервера
+            net_amount: updatedRequest.net_amount ?? oldData.net_amount,
+            expenses: updatedRequest.expenses ?? oldData.expenses,
+            master_handover: updatedRequest.master_handover ?? oldData.master_handover,
+            result: updatedRequest.result ?? oldData.result,
+          };
+        }
       );
       
       // Инвалидируем кеш списка заявок
