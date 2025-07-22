@@ -74,15 +74,13 @@ export const useUpdateRequest = () => {
     onSuccess: (updatedRequest, variables) => {
       const { id } = variables;
       
-      // ✅ ИСПРАВЛЕНИЕ: мерджим новые данные с существующими
+      // ✅ ИСПРАВЛЕНИЕ 1: мерджим новые данные с существующими для детальной страницы
       queryClient.setQueryData(
         requestsKeys.detail(id),
         (oldData: Request | undefined) => {
           if (!oldData) {
-            // Если старых данных нет, используем новые
             return updatedRequest;
           }
-          // Мерджим старые данные с новыми, сохраняя все поля
           return {
             ...oldData,
             ...updatedRequest,
@@ -95,7 +93,29 @@ export const useUpdateRequest = () => {
         }
       );
       
-      // Инвалидируем кеш списка заявок
+      // ✅ ИСПРАВЛЕНИЕ 2: обновляем заявку во ВСЕХ кешированных списках
+      queryClient.setQueriesData(
+        { queryKey: requestsKeys.lists() },
+        (oldListData: Request[] | undefined) => {
+          if (!oldListData) return oldListData;
+          
+          return oldListData.map(request => 
+            request.id === id 
+              ? {
+                  ...request,
+                  ...updatedRequest,
+                  // Сохраняем важные поля
+                  net_amount: updatedRequest.net_amount ?? request.net_amount,
+                  expenses: updatedRequest.expenses ?? request.expenses,
+                  master_handover: updatedRequest.master_handover ?? request.master_handover,
+                  result: updatedRequest.result ?? request.result,
+                }
+              : request
+          );
+        }
+      );
+      
+      // ✅ Fallback: инвалидируем кеш списка заявок для гарантии
       queryClient.invalidateQueries({ queryKey: requestsKeys.lists() });
       
       showSuccess('Заявка успешно обновлена');
