@@ -93,9 +93,14 @@ export const useUpdateRequest = () => {
         }
       );
       
-      // ✅ ИСПРАВЛЕНИЕ 2: инвалидируем все списки заявок для обновления
+      // ✅ ИСПРАВЛЕНИЕ 2: инвалидируем ВСЕ списки заявок (с любыми фильтрами), но НЕ детали  
       queryClient.invalidateQueries({ 
-        queryKey: requestsKeys.lists()
+        predicate: (query) => {
+          // Инвалидируем запросы вида: ['requests', 'list', ...любые фильтры]
+          return query.queryKey.length >= 2 && 
+                 query.queryKey[0] === 'requests' && 
+                 query.queryKey[1] === 'list';
+        }
       });
       
       showSuccess('Заявка успешно обновлена');
