@@ -93,35 +93,17 @@ export const useUpdateRequest = () => {
         }
       );
       
-      // ✅ ИСПРАВЛЕНИЕ 2: обновляем заявку во ВСЕХ кешированных списках
-      queryClient.setQueriesData(
-        { queryKey: requestsKeys.lists() },
-        (oldListData: Request[] | undefined) => {
-          if (!oldListData) return oldListData;
-          
-          return oldListData.map(request => 
-            request.id === id 
-              ? {
-                  ...request,
-                  ...updatedRequest,
-                  // Сохраняем важные поля
-                  net_amount: updatedRequest.net_amount ?? request.net_amount,
-                  expenses: updatedRequest.expenses ?? request.expenses,
-                  master_handover: updatedRequest.master_handover ?? request.master_handover,
-                  result: updatedRequest.result ?? request.result,
-                }
-              : request
-          );
-        }
-      );
-      
-      // ✅ Fallback: инвалидируем кеш списка заявок для гарантии
-      queryClient.invalidateQueries({ queryKey: requestsKeys.lists() });
+      // ✅ ИСПРАВЛЕНИЕ 2: инвалидируем все списки заявок для обновления
+      queryClient.invalidateQueries({ 
+        queryKey: requestsKeys.all,
+        predicate: query => query.queryKey.includes('list')
+      });
       
       showSuccess('Заявка успешно обновлена');
     },
-    onError: (error: { response?: { data?: { detail?: string } } }) => {
-      showError(error.response?.data?.detail || 'Ошибка обновления заявки');
+    onError: (error) => {
+      console.error('Ошибка при обновлении заявки:', error);
+      showError('Ошибка при обновлении заявки');
     },
   });
 };
