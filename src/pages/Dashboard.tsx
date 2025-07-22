@@ -30,21 +30,10 @@ interface DashboardStats {
 export default function Dashboard() {
   const { cities } = useAppData();
   
-  const fetchRequests = useCallback(() => requestsApi.getRequests(), []);
-  const fetchTransactions = useCallback(() => transactionsApi.getTransactions(), []);
-  const fetchMasters = useCallback(() => usersApi.getMasters(), []);
-  
-  const { data: requests, loading: requestsLoading } = useApiData<Request[]>(
-    fetchRequests
-  );
-
-  const { data: transactions, loading: transactionsLoading } = useApiData<Transaction[]>(
-    fetchTransactions
-  );
-
-  const { data: masters, loading: mastersLoading } = useApiData<Master[]>(
-    fetchMasters
-  );
+  // ✅ React Query хуки - автоматическое кеширование и синхронизация
+  const { data: requests = [], isLoading: requestsLoading } = useRequestsList({});
+  const { data: transactions = [], isLoading: transactionsLoading } = useTransactions();
+  const { data: masters = [], isLoading: mastersLoading } = useMasters();
 
   const stats = useMemo<DashboardStats>(() => {
     if (!requests || !transactions || !masters) {
