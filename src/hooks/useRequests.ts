@@ -95,8 +95,7 @@ export const useUpdateRequest = () => {
       
       // ✅ ИСПРАВЛЕНИЕ 2: инвалидируем все списки заявок для обновления
       queryClient.invalidateQueries({ 
-        queryKey: requestsKeys.all,
-        predicate: query => query.queryKey.includes('list')
+        queryKey: requestsKeys.lists()
       });
       
       showSuccess('Заявка успешно обновлена');
