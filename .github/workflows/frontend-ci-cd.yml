@@ -64,9 +64,9 @@ jobs:
       - name: 🔐 Setup SSH
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_rsa
+          echo "${{ secrets.PRODUCTION_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.DEPLOY_HOST }} >> ~/.ssh/known_hosts
+          ssh-keyscan -H ${{ secrets.PRODUCTION_HOST }} >> ~/.ssh/known_hosts
 
       - name: 🚀 Deploy to staging
         run: |
@@ -78,7 +78,7 @@ jobs:
           rsync -avz --delete \
             -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no" \
             ./dist/ \
-            ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/var/www/staging/
+            ${{ secrets.PRODUCTION_USER }}@${{ secrets.PRODUCTION_HOST }}:/var/www/staging/
           
           echo "✅ Staging deploy completed!"
 
@@ -100,25 +100,25 @@ jobs:
       - name: 🔐 Setup SSH
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_rsa
+          echo "${{ secrets.PRODUCTION_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.DEPLOY_HOST }} >> ~/.ssh/known_hosts
+          ssh-keyscan -H ${{ secrets.PRODUCTION_HOST }} >> ~/.ssh/known_hosts
 
       - name: 🌟 Deploy to production
         run: |
-          echo "🌟 Deploying to https://${{ secrets.DEPLOY_HOST }}..."
+          echo "🌟 Deploying to https://lead-schem.ru..."
           echo "📁 Files to deploy:"
           ls -la dist/
           
-          # Deploy files via rsync
+          # Deploy files via rsync to nginx html directory
           rsync -avz --delete \
             -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no" \
             ./dist/ \
-            ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.DEPLOY_PATH }}/
+            ${{ secrets.PRODUCTION_USER }}@${{ secrets.PRODUCTION_HOST }}:/var/www/html/
           
           # Reload nginx
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no \
-            ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
+            ${{ secrets.PRODUCTION_USER }}@${{ secrets.PRODUCTION_HOST }} \
             "sudo systemctl reload nginx"
           
           echo "✅ Deploy completed successfully!"
@@ -129,8 +129,8 @@ jobs:
           sleep 5  # Wait for server to process files
           
           # Check if site is accessible
-          if curl -f -s -I https://${{ secrets.DEPLOY_HOST }} > /dev/null; then
-            echo "✅ Site is accessible at https://${{ secrets.DEPLOY_HOST }}"
+          if curl -f -s -I https://lead-schem.ru > /dev/null; then
+            echo "✅ Site is accessible at https://lead-schem.ru"
           else
             echo "❌ Site verification failed"
             exit 1
@@ -139,7 +139,21 @@ jobs:
       - name: 🎉 Success notification
         run: |
           echo "✅ Frontend deployed to production!"
-          echo "🌐 HTTPS URL: https://${{ secrets.DEPLOY_HOST }}"
+          echo "🌐 HTTPS URL: https://lead-schem.ru"
           echo "🔐 SSL enabled with security headers"
-          echo "🚀 API: https://api.${{ secrets.DEPLOY_HOST }}"
-          echo "📁 Deployed to: ${{ secrets.DEPLOY_PATH }}" 
+          echo "🚀 API: https://api.lead-schem.ru"
+          echo "📁 Deployed to: /var/www/html/"
+
+      - name: 📢 Telegram notification
+        if: always()
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            MESSAGE="✅ Frontend успешно задеплоен!%0A🌐 Site: https://lead-schem.ru%0A🚀 API: https://api.lead-schem.ru"
+          else
+            MESSAGE="❌ Ошибка деплоя frontend!%0A🔗 Логи: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          fi
+          
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+            -d "chat_id=${{ secrets.TELEGRAM_CHAT_ID }}" \
+            -d "text=${MESSAGE}" \
+            -d "parse_mode=HTML" || echo "Telegram notification failed" 
