@@ -162,7 +162,7 @@ const RequestViewPage: React.FC = () => {
         meeting_date: meetingDateISO,
         city_id: editForm.city_id || undefined,
       };
-      await requestsApi.updateRequest(requestId, updateData);
+      const updatedRequest = await requestsApi.updateRequest(requestId, updateData);
       
       // После успешного сохранения — загружаем файлы, если выбраны
       setUploading(true);
@@ -174,8 +174,24 @@ const RequestViewPage: React.FC = () => {
       setExpenseFile(null);
       setRecordingFile(null);
       
-      // ✅ ПЕРЕЗАГРУЖАЕМ ДАННЫЕ ПОСЛЕ УСПЕШНОГО СОХРАНЕНИЯ
-      await loadRequestData();
+      // ✅ ОБНОВЛЯЕМ ФОРМУ ДАННЫМИ С СЕРВЕРА
+      setEditForm({
+        status: updatedRequest.status || 'Ожидает',
+        master_id: Number(updatedRequest.master_id) || 0,
+        net_amount: Number(updatedRequest.net_amount) || 0,
+        expense: Number(updatedRequest.expenses) || 0,
+        result: Number(updatedRequest.result) || 0,
+        client_name: updatedRequest.client_name || '',
+        client_phone: updatedRequest.client_phone || '',
+        address: updatedRequest.address || '',
+        problem: updatedRequest.problem || '',
+        advertising_campaign_id: Number(updatedRequest.advertising_campaign_id) || 0,
+        request_type_id: Number(updatedRequest.request_type_id) || 0,
+        direction_id: Number(updatedRequest.direction_id) || 0,
+        meeting_date: updatedRequest.meeting_date ? dayjs(updatedRequest.meeting_date).format('DD.MM.YYYY HH:mm') : '',
+        meeting_date_value: updatedRequest.meeting_date ? parseDateTime(updatedRequest.meeting_date.slice(0, 19)) : null,
+        city_id: Number(updatedRequest.city_id) || 0
+      });
       
       showSuccess('Данные успешно сохранены');
     } catch (error) {
