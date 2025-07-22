@@ -22,7 +22,7 @@ import {
   BuildingOfficeIcon,
   CheckCircleIcon
 } from '@heroicons/react/24/outline';
-import { useMultipleApiData } from '../hooks/useApiData';
+import { useRequestsList } from '../hooks/useRequests'; import { useAdvertisingCampaigns } from '../hooks/useAdvertisingCampaigns';
 import { useAppData } from '../contexts/AppDataContext';
 import { advertisingCampaignsApi } from '../api/advertisingCampaigns';
 import { requestsApi, type Request } from '../api/requests';
@@ -69,17 +69,12 @@ const ReportsAdvertisingPage: React.FC = () => {
     requests: requestsApi.getRequests
   }), []);
 
-  const {
-    data,
-    loading,
-    error
-  } = useMultipleApiData<{
-    campaigns: AdvertisingCampaign[];
-    requests: Request[];
-  }>(apiCalls);
+  // ✅ React Query - загружаем кампании и заявки
+  const { data: campaigns = [], isLoading: campaignsLoading } = useAdvertisingCampaigns();
+  const { data: requests = [], isLoading: requestsLoading } = useRequestsList({});
 
-  const campaigns = data?.campaigns;
-  const requests = data?.requests;
+  const loading = campaignsLoading || requestsLoading;
+  const error = null;
 
   const reports = useMemo<CampaignReport[]>(() => {
     if (!campaigns || !requests || !cities) return [];

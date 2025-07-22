@@ -22,7 +22,7 @@ import {
   CalendarDaysIcon,
   CheckCircleIcon
 } from '@heroicons/react/24/outline';
-import { useMultipleApiData } from '../hooks/useApiData';
+import { useRequestsList } from '../hooks/useRequests';
 import { useAppData } from '../contexts/AppDataContext';
 import { requestsApi, type Request } from '../api/requests';
 import { usersApi } from '../api/users';
@@ -59,15 +59,12 @@ const CallCenterReportPage: React.FC = () => {
     requests: requestsApi.getRequests
   }), []);
 
+  // ✅ React Query - загружаем заявки
   const {
-    data,
-    loading,
+    data: requests = [],
+    isLoading: loading,
     error
-  } = useMultipleApiData<{
-    requests: Request[];
-  }>(apiCalls);
-
-  const requests = data?.requests;
+  } = useRequestsList({});
 
   const filteredRequests = useMemo(() => {
     if (!requests) return [];

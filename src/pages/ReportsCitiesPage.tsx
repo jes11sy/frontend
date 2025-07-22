@@ -24,7 +24,7 @@ import {
   ChartBarIcon,
   TrophyIcon
 } from '@heroicons/react/24/outline';
-import { useMultipleApiData } from '../hooks/useApiData';
+import { useRequestsList } from '../hooks/useRequests'; import { useTransactions } from '../hooks/useTransactions'; import { useMasters } from '../hooks/useUsers';
 import { useAppData } from '../contexts/AppDataContext';
 import { requestsApi, type Request } from '../api/requests';
 import { transactionsApi } from '../api/transactions';
@@ -76,19 +76,13 @@ const ReportsCitiesPage: React.FC = () => {
     masters: usersApi.getMasters
   }), []);
 
-  const {
-    data,
-    loading,
-    error
-  } = useMultipleApiData<{
-    requests: Request[];
-    transactions: Transaction[];
-    masters: Master[];
-  }>(apiCalls);
+  // ✅ React Query - загружаем все данные отдельно
+  const { data: requests = [], isLoading: requestsLoading } = useRequestsList({});
+  const { data: transactions = [], isLoading: transactionsLoading } = useTransactions();
+  const { data: masters = [], isLoading: mastersLoading } = useMasters();
 
-  const requests = data?.requests;
-  const transactions = data?.transactions;
-  const masters = data?.masters;
+  const loading = requestsLoading || transactionsLoading || mastersLoading;
+  const error = null;
 
   const reports = useMemo<CityReport[]>(() => {
     if (!requests || !transactions || !cities || !masters) return [];
