@@ -49,8 +49,11 @@ export const useCreateRequest = () => {
   return useMutation({
     mutationFn: (data: CreateRequest) => requestsApi.createRequest(data),
     onSuccess: (newRequest) => {
-      // ✅ ПРОСТОЕ РЕШЕНИЕ: Инвалидируем ВСЕ кеши заявок
-      queryClient.invalidateQueries({ queryKey: ['requests'] });
+      // Инвалидируем кеш списка заявок
+      queryClient.invalidateQueries({ queryKey: requestsKeys.lists() });
+      
+      // Оптимистично обновляем кеш
+      queryClient.setQueryData(requestsKeys.detail(newRequest.id), newRequest);
       
       showSuccess('Заявка успешно создана');
     },
@@ -90,8 +93,11 @@ export const useDeleteRequest = () => {
   return useMutation({
     mutationFn: (id: number) => requestsApi.deleteRequest(id),
     onSuccess: (_, deletedId) => {
-      // ✅ ПРОСТОЕ РЕШЕНИЕ: Инвалидируем ВСЕ кеши заявок
-      queryClient.invalidateQueries({ queryKey: ['requests'] });
+      // Удаляем из кеша
+      queryClient.removeQueries({ queryKey: requestsKeys.detail(deletedId) });
+      
+      // Инвалидируем кеш списка
+      queryClient.invalidateQueries({ queryKey: requestsKeys.lists() });
       
       showSuccess('Заявка успешно удалена');
     },
