@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import {
   FunnelIcon,
   MagnifyingGlassIcon,
@@ -65,7 +65,8 @@ export const RequestsPage: React.FC = () => {
   const { 
     data: requests = [], 
     isLoading: requestsLoading,
-    error: requestsError
+    error: requestsError,
+    refetch
   } = useRequestsList(filters as Record<string, unknown>);
 
   const { 
@@ -76,6 +77,11 @@ export const RequestsPage: React.FC = () => {
 
   // Общий индикатор загрузки
   const isLoading = requestsLoading || additionalLoading || appDataLoading.cities || appDataLoading.requestTypes || appDataLoading.directions;
+
+  // Обновлять данные при каждом монтировании страницы
+  useEffect(() => {
+    refetch();
+  }, []);
 
   // Обработчики фильтров
   const handleFilterChange = useCallback((key: keyof RequestFilters, value: string | number | RequestStatus | undefined) => {
