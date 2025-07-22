@@ -14,9 +14,9 @@ export const transactionsKeys = {
 };
 
 // Хук для получения списка транзакций
-export const useTransactions = (filters: Record<string, unknown> = {}) => {
+export const useTransactions = () => {
   return useQuery({
-    queryKey: transactionsKeys.list(filters),
+    queryKey: transactionsKeys.lists(),
     queryFn: () => transactionsApi.getTransactions(),
     staleTime: 2 * 60 * 1000, // 2 минуты
     gcTime: 5 * 60 * 1000, // 5 минут

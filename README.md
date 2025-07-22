@@ -10,7 +10,7 @@
 - **Vite** - альтернативный сборщик
 - **HeroUI** - компоненты интерфейса
 - **React Router DOM** - маршрутизация
-- **Zustand** - управление состоянием
+
 - **Tailwind CSS** - стилизация
 - **React Hook Form** - работа с формами
 - **TanStack Query** - управление данными
@@ -54,7 +54,7 @@ src/
 ├── hooks/         # Кастомные хуки
 ├── pages/         # Страницы приложения
 ├── services/      # Сервисы
-├── stores/        # Zustand стор
+
 ├── types/         # TypeScript типы
 └── utils/         # Утилиты
 ```

@@ -14,9 +14,9 @@ export const usersKeys = {
 };
 
 // Хук для получения списка пользователей (используем мастеров как основных пользователей)
-export const useUsers = (filters: Record<string, unknown> = {}) => {
+export const useUsers = () => {
   return useQuery({
-    queryKey: usersKeys.list(filters),
+    queryKey: usersKeys.lists(),
     queryFn: () => usersApi.getMasters(),
     staleTime: 5 * 60 * 1000, // 5 минут
     gcTime: 10 * 60 * 1000, // 10 минут

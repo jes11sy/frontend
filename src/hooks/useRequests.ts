@@ -15,10 +15,16 @@ export const requestsKeys = {
 };
 
 // Хук для получения списка заявок
-export const useRequestsList = (filters: Record<string, unknown> = {}) => {
+export const useRequestsList = (params?: {
+  page?: number;
+  size?: number;
+  status?: string;
+  city_id?: number;
+  master_id?: number;
+} & Record<string, unknown>) => {
   return useQuery({
-    queryKey: requestsKeys.list(filters),
-    queryFn: () => requestsApi.getRequests(filters),
+    queryKey: requestsKeys.list(params || {}),
+    queryFn: () => requestsApi.getRequests(params),
     staleTime: 5 * 60 * 1000, // 5 минут
     gcTime: 10 * 60 * 1000, // 10 минут
     refetchOnWindowFocus: false,

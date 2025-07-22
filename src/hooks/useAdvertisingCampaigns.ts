@@ -12,9 +12,9 @@ export const campaignsKeys = {
 };
 
 // Хук для получения списка рекламных кампаний
-export const useAdvertisingCampaigns = (filters: Record<string, unknown> = {}) => {
+export const useAdvertisingCampaigns = () => {
   return useQuery({
-    queryKey: campaignsKeys.list(filters),
+    queryKey: campaignsKeys.lists(),
     queryFn: () => advertisingCampaignsApi.getAdvertisingCampaigns(),
     staleTime: 5 * 60 * 1000, // 5 минут
     gcTime: 10 * 60 * 1000, // 10 минут
