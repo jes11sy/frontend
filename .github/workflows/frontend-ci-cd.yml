@@ -116,12 +116,7 @@ jobs:
             ./dist/ \
             ${{ secrets.PRODUCTION_USER }}@${{ secrets.PRODUCTION_HOST }}:/var/www/html/
           
-          # Reload nginx
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no \
-            ${{ secrets.PRODUCTION_USER }}@${{ secrets.PRODUCTION_HOST }} \
-            "sudo systemctl reload nginx"
-          
-          echo "✅ Deploy completed successfully!"
+          echo "✅ Deploy completed successfully (no nginx reload needed - using Docker)!"
 
       - name: 🔍 Verify deployment
         run: |
