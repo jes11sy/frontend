@@ -174,6 +174,9 @@ const RequestViewPage: React.FC = () => {
       setExpenseFile(null);
       setRecordingFile(null);
       
+      // ✅ ПЕРЕЗАГРУЖАЕМ ДАННЫЕ ПОСЛЕ УСПЕШНОГО СОХРАНЕНИЯ
+      await loadRequestData();
+      
       showSuccess('Данные успешно сохранены');
     } catch (error) {
       console.error('Error saving request:', error);
@@ -182,7 +185,7 @@ const RequestViewPage: React.FC = () => {
       setSaving(false);
       setUploading(false);
     }
-  }, [requestId, editForm, bsoFile, expenseFile, recordingFile, showSuccess, showError]);
+  }, [requestId, editForm, bsoFile, expenseFile, recordingFile, showSuccess, showError, loadRequestData]);
 
   const handleInputChange = useCallback((field: keyof typeof editForm, value: any) => {
     setEditForm(prev => ({ ...prev, [field]: value }));
