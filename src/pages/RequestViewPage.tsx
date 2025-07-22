@@ -1,10 +1,10 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeftIcon, DocumentTextIcon, UserIcon, BanknotesIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 import { Card, Input, Button, Badge, Divider, Select, SelectItem, Textarea, Tabs, Tab, DatePicker } from '@heroui/react';
 import { requestsApi, type Master } from '../api/requests';
 import { useAppData } from '../contexts/AppDataContext';
-import { useApiData, useMultipleApiData } from '../hooks/useApiData';
+import { useRequest, useUpdateRequest, useRequestReferences } from '../hooks/useRequests';
 import { useNotification } from '../contexts/NotificationContext';
 import { useAuth } from '../contexts/AuthContext';
 import dayjs from 'dayjs';
@@ -64,49 +64,38 @@ const RequestViewPage: React.FC = () => {
     return cleanPath.replaceAll('\\', '/');
   };
 
-  const loadRequestData = useCallback(async () => {
-    const requestData = await requestsApi.getRequest(requestId);
-    setEditForm({
-      status: requestData.status || 'Ожидает',
-      master_id: Number(requestData.master_id) || 0,
-      net_amount: Number(requestData.net_amount) || 0,
-      expense: Number(requestData.expenses) || 0,
-      result: Number(requestData.result) || 0,
-      client_name: requestData.client_name || '',
-      client_phone: requestData.client_phone || '',
-      address: requestData.address || '',
-      problem: requestData.problem || '',
-      advertising_campaign_id: Number(requestData.advertising_campaign_id) || 0,
-      request_type_id: Number(requestData.request_type_id) || 0,
-      direction_id: Number(requestData.direction_id) || 0,
-      meeting_date: requestData.meeting_date ? dayjs(requestData.meeting_date).format('DD.MM.YYYY HH:mm') : '',
-      meeting_date_value: requestData.meeting_date ? parseDateTime(requestData.meeting_date.slice(0, 19)) : null,
-      city_id: Number(requestData.city_id) || 0
-    });
-    return requestData;
-  }, [requestId]);
-
-  const loadMastersData = useCallback(async () => {
-    return await requestsApi.getMasters();
-  }, []);
-
-  const loadAdvertisingCampaignsData = useCallback(async () => {
-    const { advertisingCampaignsApi } = await import('../api/advertisingCampaigns');
-    return await advertisingCampaignsApi.getAdvertisingCampaigns();
-  }, []);
-
-  const { data: request, loading, error } = useApiData(loadRequestData);
+  // ✅ React Query хуки - автоматическое кеширование и синхронизация
+  const { data: request, isLoading: loading, error } = useRequest(requestId);
   const { 
-    data: apiData, 
-    loading: multiLoading, 
+    masters, 
+    advertisingCampaigns,
+    isLoading: multiLoading, 
     error: multiError 
-  } = useMultipleApiData({
-    masters: loadMastersData,
-    advertisingCampaigns: loadAdvertisingCampaignsData
-  });
+  } = useRequestReferences();
+  const updateMutation = useUpdateRequest();
 
-  const masters = useMemo(() => Array.isArray(apiData?.masters) ? apiData.masters : [], [apiData?.masters]);
-  const advertisingCampaigns = useMemo(() => Array.isArray(apiData?.advertisingCampaigns) ? apiData.advertisingCampaigns : [], [apiData?.advertisingCampaigns]);
+  // ✅ Инициализация editForm из данных React Query
+  useEffect(() => {
+    if (request) {
+      setEditForm({
+        status: request.status || 'Ожидает',
+        master_id: Number(request.master_id) || 0,
+        net_amount: Number(request.net_amount) || 0,
+        expense: Number(request.expenses) || 0,
+        result: Number(request.result) || 0,
+        client_name: request.client_name || '',
+        client_phone: request.client_phone || '',
+        address: request.address || '',
+        problem: request.problem || '',
+        advertising_campaign_id: Number(request.advertising_campaign_id) || 0,
+        request_type_id: Number(request.request_type_id) || 0,
+        direction_id: Number(request.direction_id) || 0,
+        meeting_date: request.meeting_date ? dayjs(request.meeting_date).format('DD.MM.YYYY HH:mm') : '',
+        meeting_date_value: request.meeting_date ? parseDateTime(request.meeting_date.slice(0, 19)) : null,
+        city_id: Number(request.city_id) || 0
+      });
+    }
+  }, [request]);
 
   // Финальные статусы, при которых директор не может редактировать
   const finalStatuses = ['Готово', 'Отказ', 'НеЗаказ'];
@@ -162,7 +151,9 @@ const RequestViewPage: React.FC = () => {
         meeting_date: meetingDateISO,
         city_id: editForm.city_id || undefined,
       };
-      const updatedRequest = await requestsApi.updateRequest(requestId, updateData);
+      
+      // ✅ React Query автоматически обновит кеш и UI
+      await updateMutation.mutateAsync({ id: requestId, data: updateData });
       
       // После успешного сохранения — загружаем файлы, если выбраны
       setUploading(true);
@@ -174,29 +165,7 @@ const RequestViewPage: React.FC = () => {
       setExpenseFile(null);
       setRecordingFile(null);
       
-      // ✅ ОБНОВЛЯЕМ ФОРМУ ДАННЫМИ С СЕРВЕРА
-      setEditForm({
-        status: updatedRequest.status || 'Ожидает',
-        master_id: Number(updatedRequest.master_id) || 0,
-        net_amount: Number(updatedRequest.net_amount) || 0,
-        expense: Number(updatedRequest.expenses) || 0,
-        result: Number(updatedRequest.result) || 0,
-        client_name: updatedRequest.client_name || '',
-        client_phone: updatedRequest.client_phone || '',
-        address: updatedRequest.address || '',
-        problem: updatedRequest.problem || '',
-        advertising_campaign_id: Number(updatedRequest.advertising_campaign_id) || 0,
-        request_type_id: Number(updatedRequest.request_type_id) || 0,
-        direction_id: Number(updatedRequest.direction_id) || 0,
-        meeting_date: updatedRequest.meeting_date ? dayjs(updatedRequest.meeting_date).format('DD.MM.YYYY HH:mm') : '',
-        meeting_date_value: updatedRequest.meeting_date ? parseDateTime(updatedRequest.meeting_date.slice(0, 19)) : null,
-        city_id: Number(updatedRequest.city_id) || 0
-      });
-      
-      showSuccess('Данные успешно сохранены');
-      
-      // ✅ ПРИНУДИТЕЛЬНО ПЕРЕЗАГРУЖАЕМ ДАННЫЕ ИЗ API
-      await loadRequestData();
+      // ✅ React Query уже обновил данные автоматически - не нужно ничего делать!
     } catch (error) {
       console.error('Error saving request:', error);
       showError('Ошибка сохранения данных');
@@ -204,7 +173,7 @@ const RequestViewPage: React.FC = () => {
       setSaving(false);
       setUploading(false);
     }
-  }, [requestId, editForm, bsoFile, expenseFile, recordingFile, showSuccess, showError, loadRequestData]);
+  }, [requestId, editForm, bsoFile, expenseFile, recordingFile, showSuccess, showError, updateMutation]);
 
   const handleInputChange = useCallback((field: keyof typeof editForm, value: any) => {
     setEditForm(prev => ({ ...prev, [field]: value }));
@@ -278,7 +247,7 @@ const RequestViewPage: React.FC = () => {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <Card className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-2xl">
-          {error || multiError || 'Заявка не найдена'}
+          {(error instanceof Error ? error.message : error) || (multiError instanceof Error ? multiError.message : multiError) || 'Заявка не найдена'}
         </Card>
       </div>
     );
