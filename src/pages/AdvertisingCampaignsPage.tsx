@@ -29,7 +29,7 @@ import {
   PhoneIcon
 } from '@heroicons/react/24/outline';
 import { advertisingCampaignsApi } from '../api/advertisingCampaigns';
-import { useAdvertisingCampaigns, useCreateAdvertisingCampaign, useUpdateAdvertisingCampaign, useDeleteAdvertisingCampaign } from '../hooks/useAdvertisingCampaigns';
+import { useAdvertisingCampaigns, useCreateAdvertisingCampaign } from '../hooks/useAdvertisingCampaigns';
 import { useAppData } from '../contexts/AppDataContext';
 import { useNotification } from '../contexts/NotificationContext';
 import type { AdvertisingCampaign, CreateAdvertisingCampaignData } from '../types/api';
@@ -57,30 +57,16 @@ const AdvertisingCampaignsPage: React.FC = () => {
   });
   const [createForm, setCreateForm] = useState<CreateAdvertisingCampaignData>(initialForm);
 
-  // Загрузка кампаний
-  const getCampaigns = useCallback(() => advertisingCampaignsApi.getAdvertisingCampaigns(), []);
+  // ✅ React Query автоматически загружает кампании
   
   const { 
-    data: campaignsData, 
-    loading: campaignsLoading, 
+    data: campaignsData = [], 
+    isLoading: campaignsLoading, 
     refetch: refetchCampaigns 
   } = useAdvertisingCampaigns();
-    errorMessage: 'Ошибка загрузки кампаний'
-  });
 
-  // Мутация для создания кампании
-  const { mutate: createCampaign, loading: createLoading } = useApiMutation(
-    (data: CreateAdvertisingCampaignData) => advertisingCampaignsApi.createAdvertisingCampaign(data),
-    {
-      successMessage: 'Кампания успешно создана',
-      errorMessage: 'Ошибка создания кампании',
-      onSuccess: () => {
-        refetchCampaigns();
-        onClose();
-        setCreateForm(initialForm);
-      }
-    }
-  );
+  // ✅ React Query мутация для создания кампании
+  const { mutate: createCampaign, isPending: createLoading } = useCreateAdvertisingCampaign();
 
   // Мемоизированная фильтрация кампаний
   const filteredCampaigns = useMemo(() => {
@@ -122,8 +108,17 @@ const AdvertisingCampaignsPage: React.FC = () => {
       showError('Заполните все поля');
       return;
     }
-    createCampaign(createForm);
-  }, [createForm, createCampaign, showError]);
+    createCampaign(createForm, {
+      onSuccess: () => {
+        refetchCampaigns();
+        onClose();
+        setCreateForm(initialForm);
+      },
+      onError: (error: any) => {
+        showError(error.response?.data?.detail || 'Ошибка создания кампании');
+      }
+    });
+  }, [createForm, createCampaign, showError, refetchCampaigns, onClose, setCreateForm]);
 
   const getCityName = useCallback((cityId: number) => {
     const city = cities.find(c => c.id === cityId);
