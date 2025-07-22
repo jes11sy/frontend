@@ -53,11 +53,8 @@ export const useCreateTransaction = () => {
   return useMutation({
     mutationFn: (data: any) => transactionsApi.createTransaction(data),
     onSuccess: (newTransaction: any) => {
-      // Инвалидируем кеш списка транзакций
-      queryClient.invalidateQueries({ queryKey: transactionsKeys.lists() });
-      
-      // Оптимистично обновляем кеш
-      queryClient.setQueryData(transactionsKeys.detail(newTransaction.id), newTransaction);
+      // ✅ ПРОСТОЕ РЕШЕНИЕ: Инвалидируем ВСЕ кеши транзакций
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
       
       showSuccess('Транзакция успешно создана');
     },
@@ -76,14 +73,8 @@ export const useUpdateTransaction = () => {
     mutationFn: ({ id, data }: { id: number; data: any }) =>
       transactionsApi.updateTransaction(id, data),
     onSuccess: (updatedTransaction: any) => {
-      // Обновляем кеш конкретной транзакции
-      queryClient.setQueryData(
-        transactionsKeys.detail(updatedTransaction.id),
-        updatedTransaction
-      );
-      
-      // Инвалидируем кеш списка транзакций
-      queryClient.invalidateQueries({ queryKey: transactionsKeys.lists() });
+      // ✅ ПРОСТОЕ РЕШЕНИЕ: Инвалидируем ВСЕ кеши транзакций
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
       
       showSuccess('Транзакция успешно обновлена');
     },
@@ -101,11 +92,8 @@ export const useDeleteTransaction = () => {
   return useMutation({
     mutationFn: (id: number) => transactionsApi.deleteTransaction(id),
     onSuccess: (_, deletedId) => {
-      // Удаляем из кеша
-      queryClient.removeQueries({ queryKey: transactionsKeys.detail(deletedId) });
-      
-      // Инвалидируем кеш списка
-      queryClient.invalidateQueries({ queryKey: transactionsKeys.lists() });
+      // ✅ ПРОСТОЕ РЕШЕНИЕ: Инвалидируем ВСЕ кеши транзакций
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
       
       showSuccess('Транзакция успешно удалена');
     },

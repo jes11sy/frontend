@@ -49,11 +49,8 @@ export const useCreateRequest = () => {
   return useMutation({
     mutationFn: (data: CreateRequest) => requestsApi.createRequest(data),
     onSuccess: (newRequest) => {
-      // Инвалидируем кеш списка заявок
-      queryClient.invalidateQueries({ queryKey: requestsKeys.lists() });
-      
-      // Оптимистично обновляем кеш
-      queryClient.setQueryData(requestsKeys.detail(newRequest.id), newRequest);
+      // ✅ ПРОСТОЕ РЕШЕНИЕ: Инвалидируем ВСЕ кеши заявок
+      queryClient.invalidateQueries({ queryKey: ['requests'] });
       
       showSuccess('Заявка успешно создана');
     },
@@ -74,33 +71,8 @@ export const useUpdateRequest = () => {
     onSuccess: (updatedRequest, variables) => {
       const { id } = variables;
       
-      // ✅ Обновляем детальную страницу (merge с существующими данными)
-      queryClient.setQueryData(
-        requestsKeys.detail(id),
-        (oldData: Request | undefined) => {
-          if (!oldData) {
-            return updatedRequest;
-          }
-          return {
-            ...oldData,
-            ...updatedRequest,
-            // Сохраняем важные поля, если они не пришли с сервера
-            net_amount: updatedRequest.net_amount ?? oldData.net_amount,
-            expenses: updatedRequest.expenses ?? oldData.expenses,
-            master_handover: updatedRequest.master_handover ?? oldData.master_handover,
-            result: updatedRequest.result ?? oldData.result,
-          };
-        }
-      );
-      
-      // ✅ Инвалидируем все списки заявок для обновления  
-      queryClient.invalidateQueries({ 
-        predicate: (query) => {
-          return query.queryKey.length >= 2 && 
-                 query.queryKey[0] === 'requests' && 
-                 query.queryKey[1] === 'list';
-        }
-      });
+      // ✅ ПРОСТОЕ РЕШЕНИЕ: Инвалидируем ВСЕ кеши заявок
+      queryClient.invalidateQueries({ queryKey: ['requests'] });
       
       showSuccess('Заявка успешно обновлена');
     },
@@ -118,11 +90,8 @@ export const useDeleteRequest = () => {
   return useMutation({
     mutationFn: (id: number) => requestsApi.deleteRequest(id),
     onSuccess: (_, deletedId) => {
-      // Удаляем из кеша
-      queryClient.removeQueries({ queryKey: requestsKeys.detail(deletedId) });
-      
-      // Инвалидируем кеш списка
-      queryClient.invalidateQueries({ queryKey: requestsKeys.lists() });
+      // ✅ ПРОСТОЕ РЕШЕНИЕ: Инвалидируем ВСЕ кеши заявок
+      queryClient.invalidateQueries({ queryKey: ['requests'] });
       
       showSuccess('Заявка успешно удалена');
     },
