@@ -27,7 +27,7 @@ import {
   ClockIcon,
   BuildingOfficeIcon
 } from '@heroicons/react/24/outline';
-import { useMultipleApiData } from '../hooks/useApiData';
+import { useRequestsList } from '../hooks/useRequests'; import { useMasters } from '../hooks/useUsers';
 import { useAppData } from '../contexts/AppDataContext';
 import { requestsApi, type Request } from '../api/requests';
 import { usersApi, type Master } from '../api/users';
@@ -86,17 +86,12 @@ const ReportsMastersPage: React.FC = () => {
     requests: requestsApi.getRequests
   }), []);
 
-  const {
-    data,
-    loading,
-    error
-  } = useMultipleApiData<{
-    masters: Master[];
-    requests: Request[];
-  }>(apiCalls);
+  // ✅ React Query - загружаем мастеров и заявки
+  const { data: masters = [], isLoading: mastersLoading } = useMasters();
+  const { data: requests = [], isLoading: requestsLoading } = useRequestsList({});
 
-  const masters = data?.masters;
-  const requests = data?.requests;
+  const loading = mastersLoading || requestsLoading;
+  const error = null;
 
   const filteredRequests = useMemo(() => {
     if (!requests) return [];

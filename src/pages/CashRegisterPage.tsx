@@ -23,7 +23,7 @@ import {
   ChartBarIcon,
   MagnifyingGlassIcon
 } from '@heroicons/react/24/outline';
-import { useMultipleApiData } from '../hooks/useApiData';
+import { useTransactions } from '../hooks/useTransactions'; import { useMasters } from '../hooks/useUsers';
 import { useAppData } from '../contexts/AppDataContext';
 import { transactionsApi } from '../api/transactions';
 import type { Transaction, TransactionType } from '../types/api';
@@ -78,15 +78,12 @@ const CashRegisterPage: React.FC = () => {
     transactions: transactionsApi.getTransactions
   }), []);
 
+  // ✅ React Query - загружаем транзакции
   const {
-    data,
-    loading,
+    data: transactions = [],
+    isLoading: loading,
     error
-  } = useMultipleApiData<{
-    transactions: Transaction[];
-  }>(apiCalls);
-
-  const transactions = data?.transactions;
+  } = useTransactions();
 
   const filteredTransactions = useMemo(() => {
     if (!transactions) return [];

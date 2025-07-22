@@ -14,7 +14,7 @@ import {
   ChartBarIcon,
   MagnifyingGlassIcon
 } from '@heroicons/react/24/outline';
-import { useApiData } from '../hooks/useApiData';
+import { useTransactions } from '../hooks/useTransactions';
 import { useAppData } from '../contexts/AppDataContext';
 import { transactionsApi } from '../api/transactions';
 import type { Transaction } from '../types/api';
@@ -60,10 +60,7 @@ const CashBalancePage: React.FC = () => {
     type: ''
   });
 
-  const fetchTransactions = useCallback(() => transactionsApi.getTransactions(), []);
-  const { data: transactions, loading, error } = useApiData<Transaction[]>(
-    fetchTransactions
-  );
+  const { data: transactions = [], isLoading: loading, error } = useTransactions();
 
   const filteredTransactions = useMemo(() => {
     if (!transactions) return [];

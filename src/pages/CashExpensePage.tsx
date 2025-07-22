@@ -28,7 +28,7 @@ import {
   TagIcon,
   DocumentIcon
 } from '@heroicons/react/24/outline';
-import { useApiData } from '../hooks/useApiData';
+import { useTransactions } from '../hooks/useTransactions';
 import { useAppData } from '../contexts/AppDataContext';
 import { useNotification } from '../contexts/NotificationContext';
 import { transactionsApi } from '../api/transactions';
@@ -71,12 +71,10 @@ const CashExpensePage: React.FC = () => {
 
   // API Data
   const { 
-    data: transactions, 
-    loading, 
+    data: transactions = [], 
+    isLoading: loading, 
     error
-  } = useApiData(
-    useCallback(() => transactionsApi.getTransactions(), [])
-  );
+  } = useTransactions();
 
   // Local state
   const [filters, setFilters] = useState<ExpenseFilters>({
