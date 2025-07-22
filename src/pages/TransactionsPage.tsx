@@ -24,7 +24,7 @@ import {
   PencilIcon
 } from '@heroicons/react/24/outline';
 import { transactionsApi } from '../api/transactions';
-import { useApiData } from '../hooks/useApiData';
+import { useTransactions } from '../hooks/useTransactions';
 import { useAppData } from '../contexts/AppDataContext';
 import { useAuth } from '../contexts/AuthContext';
 import type { Transaction } from '../types/api';
@@ -52,11 +52,9 @@ const TransactionsPage: React.FC = () => {
   const getTransactions = useCallback(() => transactionsApi.getTransactions(), []);
   
   const { 
-    data: transactionsData, 
-    loading: transactionsLoading 
-  } = useApiData(getTransactions, {
-    errorMessage: 'Ошибка загрузки транзакций'
-  });
+    data: transactionsData = [], 
+    isLoading: transactionsLoading 
+  } = useTransactions();
 
   // Мемоизированная фильтрация транзакций
   const filteredTransactions = useMemo(() => {

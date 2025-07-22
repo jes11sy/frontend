@@ -29,7 +29,7 @@ import {
   PhoneIcon
 } from '@heroicons/react/24/outline';
 import { advertisingCampaignsApi } from '../api/advertisingCampaigns';
-import { useApiData, useApiMutation } from '../hooks/useApiData';
+import { useAdvertisingCampaigns, useCreateAdvertisingCampaign, useUpdateAdvertisingCampaign, useDeleteAdvertisingCampaign } from '../hooks/useAdvertisingCampaigns';
 import { useAppData } from '../contexts/AppDataContext';
 import { useNotification } from '../contexts/NotificationContext';
 import type { AdvertisingCampaign, CreateAdvertisingCampaignData } from '../types/api';
@@ -64,7 +64,7 @@ const AdvertisingCampaignsPage: React.FC = () => {
     data: campaignsData, 
     loading: campaignsLoading, 
     refetch: refetchCampaigns 
-  } = useApiData(getCampaigns, {
+  } = useAdvertisingCampaigns();
     errorMessage: 'Ошибка загрузки кампаний'
   });
 

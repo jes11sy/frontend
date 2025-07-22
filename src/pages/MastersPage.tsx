@@ -26,7 +26,7 @@ import {
   ClockIcon
 } from '@heroicons/react/24/outline';
 import { usersApi } from '../api/users';
-import { useApiData } from '../hooks/useApiData';
+import { useMasters } from '../hooks/useUsers';
 import { useAppData } from '../contexts/AppDataContext';
 import type { Master } from '../types/api';
 import dayjs from 'dayjs';
@@ -52,11 +52,9 @@ const MastersPage: React.FC = () => {
   const getMasters = useCallback(() => usersApi.getMasters(), []);
   
   const { 
-    data: mastersData, 
-    loading: mastersLoading 
-  } = useApiData(getMasters, {
-    errorMessage: 'Ошибка загрузки мастеров'
-  });
+    data: mastersData = [], 
+    isLoading: mastersLoading 
+  } = useMasters();
 
   // Мемоизированная фильтрация мастеров
   const filteredMasters = useMemo(() => {

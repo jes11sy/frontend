@@ -16,7 +16,7 @@ import {
   DocumentTextIcon
 } from '@heroicons/react/24/outline';
 import { transactionsApi } from '../api/transactions';
-import { useApiData } from '../hooks/useApiData';
+import { useTransaction } from '../hooks/useTransactions';
 import type { Transaction } from '../types/api';
 import dayjs from 'dayjs';
 
@@ -29,13 +29,11 @@ const TransactionViewPage: React.FC = () => {
     transactionsApi.getTransaction(Number(id)), [id]
   );
   
-  const { 
-    data: transaction, 
-    loading,
+    const { 
+    data: transaction,
+    isLoading: loading,
     error 
-  } = useApiData(getTransaction, {
-    errorMessage: 'Ошибка загрузки транзакции'
-  });
+  } = useTransaction(Number(id));
 
   const getAmountColor = useCallback((amount: number) => {
     return amount >= 0 ? 'success' : 'danger';

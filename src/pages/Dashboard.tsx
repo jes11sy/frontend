@@ -8,7 +8,7 @@ import {
   BanknotesIcon,
   BuildingOfficeIcon
 } from '@heroicons/react/24/outline';
-import { useApiData } from '../hooks/useApiData';
+import { useRequestsList } from '../hooks/useRequests'; import { useTransactions } from '../hooks/useTransactions'; import { useMasters } from '../hooks/useUsers';
 import { useAppData } from '../contexts/AppDataContext';
 import { requestsApi, type Request } from '../api/requests';
 import { transactionsApi } from '../api/transactions';

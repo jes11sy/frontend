@@ -26,7 +26,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAppData } from '../contexts/AppDataContext';
 import { useNotification } from '../contexts/NotificationContext';
-import { useApiData } from '../hooks/useApiData';
+import { useAdvertisingCampaigns } from '../hooks/useAdvertisingCampaigns';
 import { requestsApi } from '../api/requests';
 import { advertisingCampaignsApi } from '../api/advertisingCampaigns';
 import type { CreateRequestData } from '../types/api';
@@ -58,10 +58,10 @@ const IncomingRequestCreatePage: React.FC = () => {
 
   // Load advertising campaigns
   const fetchCampaigns = useCallback(() => advertisingCampaignsApi.getAdvertisingCampaigns(), []);
-  const { 
-    data: campaigns, 
-    loading: campaignsLoading 
-  } = useApiData(fetchCampaigns);
+      const { 
+      data: campaigns = [], 
+      isLoading: campaignsLoading 
+    } = useAdvertisingCampaigns();
 
   const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),

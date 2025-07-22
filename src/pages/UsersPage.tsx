@@ -34,7 +34,7 @@ import {
   ShieldCheckIcon
 } from '@heroicons/react/24/outline';
 import { usersApi } from '../api/users';
-import { useApiData } from '../hooks/useApiData';
+import { useUsers } from '../hooks/useUsers';
 import { useAppData } from '../contexts/AppDataContext';
 import { useNotification } from '../contexts/NotificationContext';
 import type { Master, Employee, Administrator } from '../types/api';
@@ -77,14 +77,12 @@ const UsersPage: React.FC = () => {
     }
   }, [activeTab]);
 
-  // Загрузка пользователей с автоматическим обновлением при смене вкладки
+  // ✅ React Query - загрузка пользователей с автоматическим кешированием
   const { 
-    data: usersData, 
-    loading: usersLoading, 
+    data: usersData = [], 
+    isLoading: usersLoading, 
     refetch: refetchUsers 
-  } = useApiData<UserType[]>(getUsersFunction, {
-    errorMessage: 'Ошибка загрузки пользователей'
-  });
+  } = useUsers();
 
   // Мемоизированная фильтрация пользователей
   const filteredUsers = useMemo(() => {

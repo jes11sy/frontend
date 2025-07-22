@@ -5,7 +5,7 @@ import { requestsApi, type Request, type CreateRequest } from '../api/requests';
 
 
 import { useAppData } from '../contexts/AppDataContext';
-import { useApiData } from '../hooks/useApiData';
+import { useRequestsList } from '../hooks/useRequests';
 
 
 import {
@@ -42,12 +42,10 @@ const IncomingRequestsPage: React.FC = () => {
   // Загрузка заявок
   const fetchRequests = useCallback(() => requestsApi.getRequests(), []);
   const { 
-    data: requestsData, 
-    loading: requestsLoading,
-    refetch: refetchRequests
-  } = useApiData(fetchRequests, {
-    errorMessage: 'Ошибка загрузки заявок'
-  });
+          data: requestsData = [], 
+      isLoading: requestsLoading,
+      refetch: refetchRequests
+    } = useRequestsList({});
 
   // Мемоизированные данные
   const requests = useMemo(() => requestsData || [], [requestsData]);

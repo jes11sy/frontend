@@ -22,7 +22,8 @@ import {
 import { requestsApi, type CreateRequest } from '../api/requests';
 import { advertisingCampaignsApi } from '../api/advertisingCampaigns';
 import { useAppData } from '../contexts/AppDataContext';
-import { useApiData } from '../hooks/useApiData';
+import { useAdvertisingCampaigns } from '../hooks/useAdvertisingCampaigns';
+import { useRequest } from '../hooks/useRequests';
 import { useNotification } from '../contexts/NotificationContext';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
@@ -38,7 +39,7 @@ const IncomingRequestEditPage: React.FC = () => {
   
   const { cities, requestTypes, directions } = useAppData();
   
-  const { data: advertisingCampaigns = [], loading: campaignsLoading, error: campaignsError } = useApiData(advertisingCampaignsApi.getAdvertisingCampaigns);
+  const { data: advertisingCampaigns = [], isLoading: campaignsLoading, error: campaignsError } = useAdvertisingCampaigns();
   
 
   
@@ -81,7 +82,7 @@ const IncomingRequestEditPage: React.FC = () => {
     return requestData;
   }, [requestId]);
 
-  const { data: request, loading, error } = useApiData(loadRequestData);
+  const { data: request, isLoading: loading, error } = useRequest(Number(id));
 
   const handleUpdateRequest = useCallback(async () => {
     try {

@@ -15,7 +15,7 @@ import {
   XMarkIcon
 } from '@heroicons/react/24/outline';
 import { transactionsApi } from '../api/transactions';
-import { useApiData } from '../hooks/useApiData';
+import { useTransaction, useUpdateTransaction } from '../hooks/useTransactions';
 import { useAppData } from '../contexts/AppDataContext';
 import { useNotification } from '../contexts/NotificationContext';
 import type { Transaction } from '../types/api';
@@ -49,13 +49,11 @@ const TransactionEditPage: React.FC = () => {
     transactionsApi.getTransaction(Number(id)), [id]
   );
   
-  const { 
-    data: transaction, 
-    loading,
+    const { 
+    data: transaction,
+    isLoading: loading,
     error 
-  } = useApiData(getTransaction, {
-    errorMessage: 'Ошибка загрузки транзакции'
-  });
+  } = useTransaction(Number(id));
 
   // Заполнение формы данными транзакции
   useEffect(() => {
