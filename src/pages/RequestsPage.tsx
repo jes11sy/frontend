@@ -83,6 +83,10 @@ export const RequestsPage: React.FC = () => {
     refetch();
   }, []);
 
+  useEffect(() => {
+    console.log('requests from server:', requests);
+  }, [requests]);
+
   // Обработчики фильтров
   const handleFilterChange = useCallback((key: keyof RequestFilters, value: string | number | RequestStatus | undefined) => {
     setFilters(prev => ({
