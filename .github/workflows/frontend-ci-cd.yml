@@ -116,7 +116,20 @@ jobs:
             ./dist/ \
             ${{ secrets.PRODUCTION_USER }}@${{ secrets.PRODUCTION_HOST }}:/var/www/html/
           
-          echo "✅ Deploy completed successfully (no nginx reload needed - using Docker)!"
+          # Update nginx config for SPA support
+          scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no \
+            nginx.conf \
+            ${{ secrets.PRODUCTION_USER }}@${{ secrets.PRODUCTION_HOST }}:/tmp/lead-schem.ru.conf
+          
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no \
+            ${{ secrets.PRODUCTION_USER }}@${{ secrets.PRODUCTION_HOST }} \
+            "sudo cp /tmp/lead-schem.ru.conf /etc/nginx/sites-available/lead-schem.ru && \
+             sudo ln -sf /etc/nginx/sites-available/lead-schem.ru /etc/nginx/sites-enabled/lead-schem.ru && \
+             sudo rm -f /etc/nginx/sites-enabled/default && \
+             sudo nginx -t && \
+             sudo systemctl reload nginx"
+          
+          echo "✅ Deploy and nginx config updated successfully!"
 
       - name: 🔍 Verify deployment
         run: |
