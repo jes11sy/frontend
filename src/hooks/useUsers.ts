@@ -18,8 +18,8 @@ export const useUsers = () => {
   return useQuery({
     queryKey: usersKeys.lists(),
     queryFn: () => usersApi.getMasters(),
-    staleTime: 5 * 60 * 1000, // 5 минут
-    gcTime: 10 * 60 * 1000, // 10 минут
+    // staleTime: 5 * 60 * 1000, // 5 минут
+    // gcTime: 10 * 60 * 1000, // 10 минут
     refetchOnWindowFocus: false,
   });
 };
@@ -29,8 +29,8 @@ export const useMasters = () => {
   return useQuery({
     queryKey: usersKeys.masters(),
     queryFn: () => usersApi.getMasters(),
-    staleTime: 10 * 60 * 1000, // 10 минут
-    gcTime: 15 * 60 * 1000, // 15 минут
+    // staleTime: 10 * 60 * 1000, // 10 минут
+    // gcTime: 15 * 60 * 1000, // 15 минут
     refetchOnWindowFocus: false,
   });
 };
@@ -50,8 +50,8 @@ export const useCities = () => {
   return useQuery({
     queryKey: usersKeys.cities(),
     queryFn: () => usersApi.getCities(),
-    staleTime: 30 * 60 * 1000, // 30 минут - справочник
-    gcTime: 60 * 60 * 1000, // 1 час
+    // staleTime: 30 * 60 * 1000, // 30 минут - справочник
+    // gcTime: 60 * 60 * 1000, // 1 час
     refetchOnWindowFocus: false,
   });
 };

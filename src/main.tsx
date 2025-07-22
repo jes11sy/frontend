@@ -13,8 +13,8 @@ const queryClient = new QueryClient({
     queries: {
       retry: 3,
       retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
-      staleTime: 0, // 🔥 ИСПРАВЛЕНИЕ: Убираем кеширование - данные всегда считаются устаревшими
-      gcTime: 10 * 60 * 1000, // 10 минут
+      staleTime: 0, // Данные всегда устаревшие
+      gcTime: 1, // Мгновенное удаление кэша
       refetchOnWindowFocus: false,
       refetchOnReconnect: true,
     },

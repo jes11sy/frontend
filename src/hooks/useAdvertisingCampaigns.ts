@@ -16,8 +16,8 @@ export const useAdvertisingCampaigns = () => {
   return useQuery({
     queryKey: campaignsKeys.lists(),
     queryFn: () => advertisingCampaignsApi.getAdvertisingCampaigns(),
-    staleTime: 5 * 60 * 1000, // 5 минут
-    gcTime: 10 * 60 * 1000, // 10 минут
+    // staleTime: 5 * 60 * 1000, // 5 минут
+    // gcTime: 10 * 60 * 1000, // 10 минут
     refetchOnWindowFocus: false,
   });
 };
@@ -34,7 +34,7 @@ export const useAdvertisingCampaign = (id: number) => {
       return Promise.resolve(campaign);
     },
     enabled: !!id && !!campaigns,
-    staleTime: 2 * 60 * 1000, // 2 минуты
+    // staleTime: 2 * 60 * 1000, // 2 минуты
   });
 };
 

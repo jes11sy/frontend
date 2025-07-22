@@ -25,8 +25,8 @@ export const useRequestsList = (params?: {
   return useQuery({
     queryKey: requestsKeys.list(params || {}),
     queryFn: () => requestsApi.getRequests(params),
-    staleTime: 5 * 60 * 1000, // 5 минут
-    gcTime: 10 * 60 * 1000, // 10 минут
+    // staleTime: 5 * 60 * 1000, // 5 минут
+    // gcTime: 10 * 60 * 1000, // 10 минут
     refetchOnWindowFocus: false,
   });
 };
@@ -37,7 +37,7 @@ export const useRequest = (id: number) => {
     queryKey: requestsKeys.detail(id),
     queryFn: () => requestsApi.getRequest(id),
     enabled: !!id,
-    staleTime: 2 * 60 * 1000, // 2 минуты
+    // staleTime: 2 * 60 * 1000, // 2 минуты
   });
 };
 
@@ -115,31 +115,31 @@ export const useRequestReferences = () => {
   const citiesQuery = useQuery({
     queryKey: [...requestsKeys.references(), 'cities'],
     queryFn: () => usersApi.getCities(),
-    staleTime: 30 * 60 * 1000, // 30 минут
+    // staleTime: 30 * 60 * 1000, // 30 минут
   });
 
   const requestTypesQuery = useQuery({
     queryKey: [...requestsKeys.references(), 'requestTypes'],
     queryFn: () => requestsApi.getRequestTypes(),
-    staleTime: 30 * 60 * 1000,
+    // staleTime: 30 * 60 * 1000,
   });
 
   const directionsQuery = useQuery({
     queryKey: [...requestsKeys.references(), 'directions'],
     queryFn: () => requestsApi.getDirections(),
-    staleTime: 30 * 60 * 1000,
+    // staleTime: 30 * 60 * 1000,
   });
 
   const mastersQuery = useQuery({
     queryKey: [...requestsKeys.references(), 'masters'],
-    queryFn: () => requestsApi.getMasters(),
-    staleTime: 10 * 60 * 1000, // 10 минут
+    queryFn: () => usersApi.getMasters(),
+    // staleTime: 10 * 60 * 1000, // 10 минут
   });
 
   const advertisingCampaignsQuery = useQuery({
     queryKey: [...requestsKeys.references(), 'advertisingCampaigns'],
     queryFn: () => advertisingCampaignsApi.getAdvertisingCampaigns(),
-    staleTime: 15 * 60 * 1000, // 15 минут
+    // staleTime: 15 * 60 * 1000, // 15 минут
   });
 
   return {
@@ -165,7 +165,7 @@ export const usePrefetchRequest = () => {
     queryClient.prefetchQuery({
       queryKey: requestsKeys.detail(id),
       queryFn: () => requestsApi.getRequest(id),
-      staleTime: 2 * 60 * 1000,
+      // staleTime: 2 * 60 * 1000,
     });
   };
 }; 
