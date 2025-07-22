@@ -32,7 +32,7 @@ import { usersApi } from '../api/users';
 import { advertisingCampaignsApi } from '../api/advertisingCampaigns';
 import { useAuth } from '../contexts/AuthContext';
 import { useAppData } from '../contexts/AppDataContext';
-import { useApiData, useMultipleApiData } from '../hooks/useApiData';
+import { useRequestsList, useRequestReferences } from '../hooks/useRequests';
 import type { RequestStatus } from '../types/api';
 
 interface RequestFilters {
@@ -61,33 +61,18 @@ export const RequestsPage: React.FC = () => {
     search: ''
   });
 
-  // Загрузка основных данных
-  const fetchRequests = useCallback(() => requestsApi.getRequests(filters), [filters]);
+  // ✅ React Query хуки - автоматическое кеширование и синхронизация
   const { 
-    data: requestsData, 
-    loading: requestsLoading,
+    data: requests = [], 
+    isLoading: requestsLoading,
     error: requestsError
-  } = useApiData(fetchRequests, {
-    errorMessage: 'Ошибка загрузки заявок'
-  });
+  } = useRequestsList(filters as Record<string, unknown>);
 
-  // Загрузка дополнительных данных
-  const additionalApiCalls = useMemo(() => ({
-    masters: () => usersApi.getMasters(),
-    advertisingCampaigns: () => advertisingCampaignsApi.getAdvertisingCampaigns()
-  }), []);
-  
   const { 
-    data: additionalData,
-    loading: additionalLoading 
-  } = useMultipleApiData(additionalApiCalls, {
-    errorMessage: 'Ошибка загрузки дополнительных данных'
-  });
-
-  // Мемоизированные данные
-  const requests = useMemo(() => requestsData || [], [requestsData]);
-  const masters = useMemo(() => additionalData?.masters || [], [additionalData?.masters]);
-  const advertisingCampaigns = useMemo(() => additionalData?.advertisingCampaigns || [], [additionalData?.advertisingCampaigns]);
+    masters, 
+    advertisingCampaigns,
+    isLoading: additionalLoading
+  } = useRequestReferences();
 
   // Общий индикатор загрузки
   const isLoading = requestsLoading || additionalLoading || appDataLoading.cities || appDataLoading.requestTypes || appDataLoading.directions;
@@ -268,7 +253,7 @@ export const RequestsPage: React.FC = () => {
     return (
       <div className="h-screen w-full px-4">
         <Card className="bg-red-50 border border-red-200">
-          <div className="p-4 text-red-700">{requestsError}</div>
+          <div className="p-4 text-red-700">{requestsError instanceof Error ? requestsError.message : String(requestsError)}</div>
         </Card>
       </div>
     );

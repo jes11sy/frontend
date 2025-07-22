@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { 
   ArrowLeftIcon, 
@@ -20,7 +20,7 @@ import {
 } from '@heroui/react';
 import { usersApi, type Master } from '../api/users';
 import { useAppData } from '../contexts/AppDataContext';
-import { useApiData } from '../hooks/useApiData';
+import { useMaster, useUpdateMaster, useCities } from '../hooks/useUsers';
 import { useNotification } from '../contexts/NotificationContext';
 
 const MasterViewPage: React.FC = () => {
@@ -44,38 +44,38 @@ const MasterViewPage: React.FC = () => {
     notes: ''
   });
 
-  const loadMasterData = useCallback(async () => {
-    const masterData = await usersApi.getMaster(masterId);
-    
-    // Инициализируем форму редактирования
-    setEditForm({
-      full_name: masterData.full_name || '',
-      phone_number: masterData.phone_number || '',
-      birth_date: masterData.birth_date || '',
-      passport: masterData.passport || '',
-      status: masterData.status || 'active',
-      chat_id: masterData.chat_id || '',
-      city_id: masterData.city_id || 0,
-      notes: masterData.notes || ''
-    });
-    
-    return masterData;
-  }, [masterId]);
+  // ✅ React Query хуки
+  const { data: master, isLoading: loading, error } = useMaster(masterId);
+  const updateMutation = useUpdateMaster();
 
-  const { data: master, loading, error } = useApiData(loadMasterData);
+  // ✅ Инициализация editForm из данных React Query
+  useEffect(() => {
+    if (master) {
+      setEditForm({
+        full_name: master.full_name || '',
+        phone_number: master.phone_number || '',
+        birth_date: master.birth_date || '',
+        passport: master.passport || '',
+        status: master.status || 'active',
+        chat_id: master.chat_id || '',
+        city_id: master.city_id || 0,
+        notes: master.notes || ''
+      });
+    }
+  }, [master]);
 
   const handleSave = useCallback(async () => {
     try {
       setSaving(true);
-      await usersApi.updateMaster(masterId, editForm);
-      showSuccess('Данные мастера успешно обновлены');
+      // ✅ React Query автоматически обновит кеш
+      await updateMutation.mutateAsync({ id: masterId, data: editForm });
     } catch (error) {
       console.error('Error updating master:', error);
       showError('Ошибка сохранения данных');
     } finally {
       setSaving(false);
     }
-  }, [masterId, editForm, showSuccess, showError]);
+  }, [masterId, editForm, showError, updateMutation]);
 
   const handleInputChange = useCallback((field: keyof typeof editForm, value: any) => {
     setEditForm(prev => ({ ...prev, [field]: value }));
