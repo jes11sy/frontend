@@ -74,8 +74,11 @@ export const useUpdateRequest = () => {
     onSuccess: (updatedRequest, variables) => {
       const { id } = variables;
       
-      // ✅ ПРОСТОЕ РЕШЕНИЕ: Инвалидируем ВСЕ кеши заявок
-      queryClient.invalidateQueries({ queryKey: ['requests'] });
+      // ✅ Обновляем детальную страницу в кеше
+      queryClient.setQueryData(requestsKeys.detail(id), updatedRequest);
+      
+      // ✅ Инвалидируем все списки заявок (теперь это работает благодаря staleTime: 0)
+      queryClient.invalidateQueries({ queryKey: requestsKeys.lists() });
       
       showSuccess('Заявка успешно обновлена');
     },
