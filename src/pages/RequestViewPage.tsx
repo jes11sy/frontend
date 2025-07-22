@@ -194,6 +194,9 @@ const RequestViewPage: React.FC = () => {
       });
       
       showSuccess('Данные успешно сохранены');
+      
+      // ✅ ПРИНУДИТЕЛЬНО ПЕРЕЗАГРУЖАЕМ ДАННЫЕ ИЗ API
+      await loadRequestData();
     } catch (error) {
       console.error('Error saving request:', error);
       showError('Ошибка сохранения данных');
