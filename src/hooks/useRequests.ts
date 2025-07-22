@@ -74,14 +74,21 @@ export const useUpdateRequest = () => {
     onSuccess: (updatedRequest, variables) => {
       const { id } = variables;
       
+      console.log('🔄 Update request success:', { id, updatedRequest });
+      
+      // Получаем старые данные из кеша
+      const oldData = queryClient.getQueryData<Request>(requestsKeys.detail(id));
+      console.log('📦 Old cache data:', oldData);
+      
       // ✅ ИСПРАВЛЕНИЕ 1: мерджим новые данные с существующими для детальной страницы
       queryClient.setQueryData(
         requestsKeys.detail(id),
         (oldData: Request | undefined) => {
           if (!oldData) {
+            console.log('⚠️ No old data, using server response');
             return updatedRequest;
           }
-          return {
+          const mergedData = {
             ...oldData,
             ...updatedRequest,
             // Принудительно сохраняем важные поля, если они не пришли с сервера
@@ -90,23 +97,37 @@ export const useUpdateRequest = () => {
             master_handover: updatedRequest.master_handover ?? oldData.master_handover,
             result: updatedRequest.result ?? oldData.result,
           };
+          console.log('🔀 Merged data:', mergedData);
+          return mergedData;
         }
       );
       
       // ✅ ИСПРАВЛЕНИЕ 2: инвалидируем ВСЕ списки заявок (с любыми фильтрами), но НЕ детали  
+      console.log('🗑️ Invalidating request lists...');
       queryClient.invalidateQueries({ 
         predicate: (query) => {
-          // Инвалидируем запросы вида: ['requests', 'list', ...любые фильтры]
-          return query.queryKey.length >= 2 && 
+          const shouldInvalidate = query.queryKey.length >= 2 && 
                  query.queryKey[0] === 'requests' && 
                  query.queryKey[1] === 'list';
+          if (shouldInvalidate) {
+            console.log('🎯 Invalidating query:', query.queryKey);
+          }
+          return shouldInvalidate;
         }
       });
+      
+      // ✅ FALLBACK: Если сервер вернул неполные данные, перезагружаем детальную страницу
+      setTimeout(() => {
+        console.log('🔄 Fallback: Invalidating detail page to ensure fresh data');
+        queryClient.invalidateQueries({ 
+          queryKey: requestsKeys.detail(id)
+        });
+      }, 100);
       
       showSuccess('Заявка успешно обновлена');
     },
     onError: (error) => {
-      console.error('Ошибка при обновлении заявки:', error);
+      console.error('❌ Ошибка при обновлении заявки:', error);
       showError('Ошибка при обновлении заявки');
     },
   });

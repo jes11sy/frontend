@@ -41,9 +41,11 @@ export const requestsApi = {
     return response.data;
   },
 
-  // Обновление заявки
+  // Обновление заявки (частичное обновление)
   updateRequest: async (id: number, data: UpdateRequest): Promise<Request> => {
-    const response = await apiClient.put(`/requests/${id}/`, data);
+    console.log('🔄 Sending PATCH request:', { id, data });
+    const response = await apiClient.patch(`/requests/${id}/`, data);
+    console.log('✅ Server response:', response.data);
     return response.data;
   },
 
